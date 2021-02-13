@@ -2,62 +2,71 @@
   <aside>
     <div class="container">
       <header>
-        <h2 data-logo>
-          AjouNICE!
-        </h2>
+        <Logo />
         <small>
           <strong>관리자</strong>
         </small>
       </header>
       <hr>
-      <nav class="lnb">
-        <ul class="menus">
-          <li
+      <b-menu class="lnb">
+        <b-menu-list
+          label="메뉴"
+          icon-pack="fas"
+        >
+          <b-menu-item
             v-for="item in modules"
             :key="item.id"
-            :class="{ 'active': item.link === $route.path }"
+            :icon="item.icon"
+            :label="item.label"
+            tag="router-link"
+            :to="item.link"
+            class="link"
+            :active="$route.path === item.link"
           >
-            <router-link :to="item.link">
-              <font-awesome-icon :icon="item.icon" />
-              <span>{{ item.label }}</span>
-            </router-link>
-            <ul v-show="item.hasOwnProperty('children')">
-              <li
-                v-for="child in item.children"
-                :key="child.id"
-                class="has-text-right"
-              >
-                <router-link :to="child.link">
-                  <small>{{ child.label }}</small>
-                </router-link>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </nav>
-      <hr>
-      <div class="controls">
-        <ul class="menus">
-          <li>
-            <router-link to="/">
-              <font-awesome-icon icon="home" />
-              <span>메인으로</span>
-            </router-link>
-          </li>
-          <li>
-            <a @click="logout">
-              <font-awesome-icon icon="sign-out-alt" />
-              <span>로그아웃</span>
-            </a>
-          </li>
-        </ul>
-      </div>
+            <b-menu-item
+              v-for="child in item.children"
+              v-show="item.hasOwnProperty('children')"
+              :key="child.id"
+              tag="router-link"
+              :label="child.label"
+              :to="child.link"
+            />
+          </b-menu-item>
+        </b-menu-list>
+        <b-menu-list label="조작">
+          <b-menu-item
+            tag="a"
+            target="_blank"
+            label="API 관리"
+            href="http://localhost:455/playground"
+            icon="cog"
+            :active="false"
+          />
+          <b-menu-item
+            tag="router-link"
+            label="메인으로"
+            to="/"
+            icon="home"
+            :active="false"
+          />
+          <b-menu-item
+            label="로그아웃"
+            icon="sign-out-alt"
+            :active="false"
+            @click="logout"
+          />
+        </b-menu-list>
+      </b-menu>
     </div>
   </aside>
 </template>
 
 <script>
+import Logo from '@/assets/images/AjouNICE_shadow.svg'
 export default {
+  components: {
+    Logo
+  },
   props: {
     modules: {
       type: Array,
@@ -79,8 +88,20 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+svg {
+  fill: #fff;
+}
+
 aside {
-  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)
+  box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+  & small {
+    > strong {
+      color: #fff;
+    }
+  }
+  & hr {
+    margin: .5rem 2rem;
+  }
 }
 
 .container {
@@ -92,31 +113,27 @@ aside {
   }
 }
 
-ul.menus {
-  > li {
-    > a {
-      color: #3e3e3e;
-      padding: .5rem 1rem;
-      display: flex;
-      flex-direction: row;
-      justify-content: space-between;
-      align-items: center;
-    }
-    > ul {
-      margin: {
-        left: 1rem;
-      }
-      > li {
-        padding: {
-          right: 1rem;
-        }
-      }
-    }
-    &.active {
-      a {
-        color: red;
-      }
-    }
-  }
+.lnb {
+  padding: 0 .5rem;
+}
+
+.menu-label {
+  color: #fff;
+  font-weight: bold;
+}
+</style>
+
+<style lang="scss">
+ul.menu-list {
+ > li {
+   > a {
+     display: flex;
+     flex-direction: row;
+     align-items: center;
+     > span:first-of-type {
+       margin-right: .5rem;
+     }
+   }
+ }
 }
 </style>

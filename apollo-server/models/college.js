@@ -1,5 +1,11 @@
 module.exports = (sequelize, DataTypes) => {
   return sequelize.define('COLLEGE', {
+    id: {
+      type: DataTypes.INTEGER(10).UNSIGNED,
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
     college_cd: {
       type: DataTypes.STRING(4),
       allowNull: false,
@@ -8,7 +14,6 @@ module.exports = (sequelize, DataTypes) => {
     college_nm: {
       type: DataTypes.STRING(6),
       allowNull: false,
-      unique: true,
     },
     exist_yn: {
       type: DataTypes.STRING(1),
@@ -30,8 +35,14 @@ module.exports = (sequelize, DataTypes) => {
     upt_dt: {
       type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: DataTypes.NOW,
     },
   }, {
+    hooks: {
+      afterUpdate: (college, options) => {
+        college.upt_dt = DataTypes.NOW;
+      },
+    },
     timestamps: false,
     freezeTableName: true,
     charset: 'utf8',

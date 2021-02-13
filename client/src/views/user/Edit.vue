@@ -14,112 +14,109 @@
         @submit.prevent
       >
         <div class="wrapper">
-            <header data-logo>
-                <h2>Recovery</h2>
-                <small>계정 재설정</small>
-            </header>
-            <div class="input-form">
-                <div class="input-form-wrapper">
-                    <div class="input-form-group">
-                    <input
-                        type="email"
-                        placeholder="이메일"
-                        :value="$store.state.user.email"
-                        disabled
-                    >
-                    </div>
-                    <div class="input-form-group">
-                    <div
-                        v-if="mode.modify"
-                        class="input-group"
-                    >
-                        <input
-                        v-model="pre_password"
-                        name="password"
-                        autofocus
-                        type="password"
-                        autocapitalize="none"
-                        pattern=".{8,}"
-                        placeholder="기존 패스워드"
-                        required
-                        :class="{ 'error': errorValidation.pre_user_pw }"
-                        >
-                        <p
-                        v-if="errorValidation.pre_user_pw"
-                        class="auto-validate-noti"
-                        :class="{ 'error': errorValidation.pre_user_pw }"
-                        >
-                        {{ errorMsg.pre_user_pw }}
-                        </p>
-                    </div>
-                    <div class="input-group">
-                        <input
-                        v-model="password"
-                        name="password"
-                        autofocus
-                        type="password"
-                        autocapitalize="none"
-                        pattern=".{8,}"
-                        placeholder="신규 패스워드"
-                        required
-                        :class="{ 'error': errorValidation.user_pw }"
-                        >
-                        <p
-                        v-if="errorValidation.user_pw"
-                        class="auto-validate-noti"
-                        :class="{ 'error': errorValidation.user_pw }"
-                        >
-                        {{ errorMsg.user_pw }}
-                        </p>
-                    </div>
-                    <div class="input-group">
-                        <input
-                        v-model="passwordConfirm"
-                        name="passwordConfirm"
-                        type="password"
-                        autocapitalize="none"
-                        pattern=".{8,}"
-                        placeholder="패스워드 재확인"
-                        required
-                        :class="{ 'error': errorValidation.user_pw_confirm }"
-                        >
-                        <p
-                        v-if="passwordConfirm && validatedPWConfirm && !errorValidation.user_pw_confirm"
-                        class="auto-validate-noti"
-                        >
-                        패스워드 확인이 일치합니다.
-                        </p>
-                        <p
-                        v-if="errorValidation.user_pw_confirm"
-                        class="auto-validate-noti"
-                        :class="{ 'error': errorValidation.user_pw_confirm }"
-                        >
-                        {{ errorMsg.user_pw_confirm }}
-                        </p>
-                    </div>
-                    </div>
-                    <div class="input-form-group buttons">
-                      <b-button
-                          class="submit"
-                          size="is-medium"
-                          type="is-dark"
-                          expanded
-                          @click="resetAccount"
-                      >
-                          <font-awesome-icon icon="users-cog" />&nbsp;
-                          <span>계정 재설정</span>
-                      </b-button>
-                    </div>
+          <header data-logo>
+            <h2>Recovery</h2>
+            <small>계정 재설정</small>
+          </header>
+          <div class="input-form">
+            <div class="input-form-wrapper">
+              <div class="input-form-group">
+                <input
+                  v-model="email"
+                  type="email"
+                  placeholder="이메일"
+                  disabled
+                >
+              </div>
+              <div class="input-form-group">
+                <div class="input-group">
+                  <input
+                    v-model="pre_password"
+                    name="password"
+                    autofocus
+                    type="password"
+                    autocapitalize="none"
+                    pattern=".{8,}"
+                    placeholder="기존 패스워드"
+                    required
+                    :class="{ 'error': errorValidation.pre_user_pw }"
+                  >
+                  <p
+                    v-if="errorValidation.pre_user_pw"
+                    class="auto-validate-noti"
+                    :class="{ 'error': errorValidation.pre_user_pw }"
+                  >
+                    {{ errorMsg.pre_user_pw }}
+                  </p>
                 </div>
-                <div class="input-form-controls">
-                    <router-link
-                    to="/"
-                    class="underline underline-inline-block"
-                    >
-                    <small>처음으로</small>
-                    </router-link>
+                <div class="input-group">
+                  <input
+                    v-model="password"
+                    name="password"
+                    autofocus
+                    type="password"
+                    autocapitalize="none"
+                    pattern=".{8,}"
+                    placeholder="신규 패스워드"
+                    required
+                    :class="{ 'error': errorValidation.user_pw }"
+                  >
+                  <p
+                    v-if="errorValidation.user_pw"
+                    class="auto-validate-noti"
+                    :class="{ 'error': errorValidation.user_pw }"
+                  >
+                    {{ errorMsg.user_pw }}
+                  </p>
                 </div>
+                <div class="input-group">
+                  <input
+                    v-model="passwordConfirm"
+                    name="passwordConfirm"
+                    type="password"
+                    autocapitalize="none"
+                    pattern=".{8,}"
+                    placeholder="패스워드 재확인"
+                    required
+                    :class="{ 'error': errorValidation.user_pw_confirm }"
+                  >
+                  <p
+                    v-if="passwordConfirm && validatedPWConfirm && !errorValidation.user_pw_confirm"
+                    class="auto-validate-noti"
+                  >
+                    패스워드 확인이 일치합니다.
+                  </p>
+                  <p
+                    v-if="errorValidation.user_pw_confirm"
+                    class="auto-validate-noti"
+                    :class="{ 'error': errorValidation.user_pw_confirm }"
+                  >
+                    {{ errorMsg.user_pw_confirm }}
+                  </p>
+                </div>
+              </div>
+              <div class="input-form-group buttons">
+                <b-button
+                  class="submit"
+                  size="is-medium"
+                  type="is-dark"
+                  expanded
+                  @click="resetAccount"
+                >
+                  <font-awesome-icon icon="users-cog" />&nbsp;
+                  <span>계정 재설정</span>
+                </b-button>
+              </div>
             </div>
+            <div class="input-form-controls">
+              <router-link
+                to="/"
+                class="underline underline-inline-block"
+              >
+                <small>처음으로</small>
+              </router-link>
+            </div>
+          </div>
         </div>
       </form>
     </section>
@@ -128,9 +125,6 @@
 
 <script>
 import Logo from '@/assets/images/AjouNICE_shadow.svg'
-import pathParser from 'path-parse'
-import gql from 'graphql-tag'
-import { UserModify } from '@/assets/graphql/queries'
 export default {
   components: {
     Logo
@@ -151,10 +145,6 @@ export default {
         pre_user_pw: '',
         user_pw: '',
         user_pw_confirm: ''
-      },
-      mode: {
-        reset: false,
-        modify: false
       }
     }
   },
@@ -196,6 +186,9 @@ export default {
   beforeCreate () {
     document.body.classList.add('auth')
   },
+  mounted () {
+    this.email = this.$store.state.user.email
+  },
   methods: {
     initError (key) {
       this.errorValidation[key] = false
@@ -222,20 +215,16 @@ export default {
       } else {
         // 비밀번호 재설정 진행
         const data = {
+          mode: 'modify',
           authToken: this.$route.query.authToken,
           password: this.password,
-          passwordConfirm: this.passwordConfirm
-        }
-        if (this.mode.reset) {
-          data.mode = 'reset'
-        } else if (this.mode.modify) {
-          data.mode = 'modify'
-          data.prePassword = this.pre_password
+          passwordConfirm: this.passwordConfirm,
+          prePassword: this.pre_password
         }
         this.$Axios({
           method: 'POST',
           url: '/api/auth/update',
-          data: data
+          data
         }).then(result => {
           if (result.status === 201) {
             this.$swal({

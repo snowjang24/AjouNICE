@@ -1,0 +1,31 @@
+{
+    reports {
+        report_idx
+        user {
+            user_idx
+            user_nm
+        }
+        post {
+            board_idx
+            title
+        }
+        text
+        reg_ip
+        reg_dt
+    }
+
+    resReports {
+        report_idx
+        user {
+            user_idx
+            user_nm
+        }
+        resource {
+            res_idx
+            res_nm
+        }
+        text
+        reg_ip
+        reg_dt
+    }
+}

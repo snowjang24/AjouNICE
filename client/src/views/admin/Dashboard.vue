@@ -3,7 +3,7 @@
     <div class="admin admin-dashboard">
       <Aside :modules="modules" />
       <main>
-        <div class="wrapper content">
+        <div class="container">
           <router-view />
         </div>
       </main>
@@ -56,7 +56,7 @@ export default {
             { id: uuid(), label: '일반 게시판', link: '/gate/manager/boards', icon: 'sticky-note' },
             { id: uuid(), label: '맛집 게시판', link: '/gate/manager/boards/gourmet', icon: 'sticky-note' },
             { id: uuid(), label: '부동산', link: '/gate/manager/boards/realty', icon: 'sticky-note' },
-            { id: uuid(), label: '강의평가', link: '/gate/manager/boards/reivews', icon: 'sticky-note' }
+            { id: uuid(), label: '강의평가', link: '/gate/manager/boards/reviews', icon: 'sticky-note' }
           ]
         },
         {
@@ -83,13 +83,22 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .admin {
-  display: grid;
-  grid-template-columns: 1fr 9fr;
-  min-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  max-height: calc(100vh - 32px);
   > aside {
-    background: #e3e3e3;
+    color: #fff;
+    background: #2C3745;
+    min-width: 200px;
+    height: calc(100vh - 32px);
+    min-height: calc(1200px * 6 / 19);
+    overflow: hidden;
+    & a {
+      color: #fff;
+    }
   }
 }
 
@@ -98,8 +107,29 @@ export default {
   grid-template-columns: repeat(3, 1fr);
   column-gap: 1rem;
 }
+</style>
+
+<style lang="scss" scoped>
+footer {
+  height: 32px;
+  z-index: 100;
+  & .footer-content {
+    max-height: 32px;
+  }
+}
 
 main {
+  width: 100%;
+  background: #F9FBFF;
   padding: 1rem 2rem;
+  overflow-y: scroll;
+}
+
+.wrapper {
+  width: 100%;
+  min-width: 1200px;
+  height: 100vh;
+  min-height: calc(1200px * 6 / 19);
+  overflow: hidden;
 }
 </style>

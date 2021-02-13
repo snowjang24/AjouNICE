@@ -1,33 +1,37 @@
+const http = require('http');
+const colors = require('colors');
+const config = require('./config/config.json');
 
-const { RedisCache, } = require('apollo-server-cache-redis');
+const app = require('./middlewares/app');
 const { LoggerExtension, } = require('apollo-server-logger');
+const { RedisCache, } = require('apollo-server-cache-redis');
 const {
   ApolloServer,
   gql,
-  AuthenticationError,
-  ForbiddenError,
 } = require('apollo-server-express');
 
-const http = require('http');
-const NoIntrospection = require('graphql-disable-introspection');
-const depthLimit = require('graphql-depth-limit');
-const { createComplexityLimitRule, } = require('graphql-validation-complexity');
-
-const config = require('./config/config.json');
+const db = require('./models');
 const typeDefs = gql(require('./typeDefs'));
 const resolvers = require('./resolvers');
+
+const NoIntrospection = require('graphql-disable-introspection');
 const { encodeTextBody, } = require('./middlewares/securityModule');
-const app = require('./middlewares/app');
-const db = require('./models');
+const depthLimitRule = require('graphql-depth-limit');
+const { createComplexityLimitRule, } = require('graphql-validation-complexity');
+const depthLimit = 5;
+const complexityLimit = 1200;
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  resolverValidationOptions: {
+    requireResolversForResolveType: false,
+  },
   validationRules: [
-    // NoIntrospection,
-    depthLimit(5), // Limited GraphQL Query Depth
-    createComplexityLimitRule(1000, { // Limited GraphQL Query Complexity
-      onCost: cost => console.log(`[Apollo] Query Costs: ${cost}`),
+    // NoIntrospection, // When Production
+    depthLimitRule(depthLimit), // Limited GraphQL Query Depth
+    createComplexityLimitRule(complexityLimit, { // Limited GraphQL Query Complexity
+      onCost: cost => console.log(colors.bgWhite(colors.black(`[Apollo] Query Costs: ${cost}`))),
     })
   ],
   engine: { // Connected to Apollo Engine
@@ -45,19 +49,13 @@ const server = new ApolloServer({
   extensions: [() => new LoggerExtension({ // Logging
     tracing: true,
   })],
-  context: async ({ req, }) => {
-    // if (!req.headers.authorization) {
-    //   throw new AuthenticationError('Resource 서버 접근을 위한 인증이 필요합니다.');
-    // }
-    // const token = req.headers.authorization.substr(7);
+  context: ({ req, }) => {
     return { db, };
   },
 });
 
 server.applyMiddleware({ app, cors: false, });
-
 const httpServer = http.createServer(app);
-
 server.installSubscriptionHandlers(httpServer);
 httpServer.listen(455);
 httpServer.timeout = 5000; // Set Timeout under 5000ms

@@ -1,171 +1,205 @@
 <template>
-    <div class="wrapper">
-        <Navigation :scroll-base="scrollBase" />
-        <Landing ref="scrollBase" :title="boardTitle" :description="boardDescription" background="http://www.ajou.ac.kr/_attach/new/_images/2019/12/23/191223_main_visual05_bg.gif" />
-        <BoardNav :write-url="write_url" />
-        <section v-if="$route.params.category">
-            <ul v-show="sub_categories" class="board-nav">
-                <li class="active">
-                    <a href="#">전체</a>
-                </li>
-                <li v-for="category in sub_categories" :key="category.category_idx">
-                    <router-link :to="`/board/${$route.params.category}/${category.title}`">
-                        {{ category.category_nm }}
-                    </router-link>
-                </li>
-            </ul>
-            <table class="list">
-                <thead />
-                <tbody />
-                <tfoot />
-            </table>
-        </section>
-        <section v-else>
-            <ul v-show="categories" class="board-nav">
-                <li class="active">
-                    <a href="#">전체</a>
-                </li>
-                <li v-for="category in categories" :key="category.category_idx">
-                    <router-link :to="`/board/${category.title}`">
-                        {{ category.category_nm }}
-                    </router-link>
-                </li>
-            </ul>
-        </section>
-        <div class="container">
-            <PostList :items="posts" />
+  <div class="wrapper">
+    <Navigation is-static />
+    <InfinitySwipe
+      class="categories"
+      :current-page="1"
+      :item-width="224"
+      @move="onMoveCategory"
+      @touch-end="onTouchEnd"
+      @change-page="onChangePage"
+    >
+      <div
+        v-for="(category, index) in categories"
+        :key="index"
+        class="infinity-swipe-item"
+      >
+        <h2
+          :class="{'active': activeCategory === category.category_idx}"
+          @click="onCategoryClicked(category.category_idx)"
+        >
+          {{ category.category_nm }}
+        </h2>
+        <h2
+          :class="{'active': activeCategory === category.category_idx}"
+          @click="onCategoryClicked(category.category_idx)"
+        >
+          {{ category.category_nm }}
+        </h2>
+      </div>
+    </InfinitySwipe>
+    <InfinitySwipe
+      class="categories"
+      :current-page="1"
+      :item-width="224"
+      @move="onMoveCategory"
+      @touch-end="onTouchEnd"
+      @change-page="onChangePage"
+    >
+      <div
+        v-for="(category, index) in childCategories"
+        :key="index"
+        class="infinity-swipe-item"
+      >
+        <h2
+          :class="{'active': activeCategory === category.category_idx}"
+          @click="onCategoryClicked(category.category_idx)"
+        >
+          {{ category.category_nm }}
+        </h2>
+        <h2
+          :class="{'active': activeCategory === category.category_idx}"
+          @click="onCategoryClicked(category.category_idx)"
+        >
+          {{ category.category_nm }}
+        </h2>
+      </div>
+    </InfinitySwipe>
+    <div class="container">
+      <PostList :items="posts" />
+      <infinite-loading
+        ref="infinitePostLoader"
+        spinner="waveDots"
+        @infinite="loadPosts"
+      >
+        <div slot="no-more">
+          <font-awesome-icon icon="times" />&nbsp;
+          <span>더 이상 게시물이 없어요.</span>
         </div>
-        <Footer />
+        <div slot="no-results">
+          <font-awesome-icon icon="times" />&nbsp;
+          <span>찾으시는 게시물이 없어요.</span>
+        </div>
+      </infinite-loading>
     </div>
+    <Footer />
+  </div>
 </template>
 
 <script>
+import _ from 'lodash'
 import gql from 'graphql-tag'
 import urljoin from 'url-join'
-import { Landing, Navigation, PostList, BoardNav, Footer } from '@/components'
-import { CateInfo, PostsByCate, SubCates, BoardsAndPosts } from '@/assets/graphql/queries'
+import { Navigation, PostList, Footer } from '@/components'
+import { Categories, PaginationPosts } from '@/assets/graphql/queries'
+import InfinitySwipe from 'vue-swipe-menu'
+import 'vue-swipe-menu/dist/vue-swipe-menu.css'
 export default {
-    components: {
-        Landing,
-        Navigation,
-        PostList,
-        BoardNav,
-        Footer
-    },
-    data() {
-        return {
-            scrollBase: null,
-            categories: [],
-            sub_categories: [],
-            category: '',
-            category_desc: '',
-            category_idx: null,
-            sub_category: '',
-            sub_category_desc: '',
-            sub_category_idx: null,
-            write_url: urljoin(this.$route.path, '/new'),
-            posts: []
-        }
-    },
-    computed: {
-        boardTitle() {
-            if (!this.$route.params.category) {
-                return '게시판'
-            } else {
-                if (!this.$route.params.name) {
-                    return this.category
-                } else {
-                    return this.sub_category
-                }
-            }
-        },
-        boardDescription() {
-            if (!this.$route.params.name) {
-                return this.category_desc
-            } else {
-                return this.sub_category_desc
-            }
-        }
-    },
-    beforeCreate() {
-        document.body.classList.toggle('loading')
-    },
-    beforeMount() {
-        this.init()
-    },
-    created() {
-        document.body.classList.toggle('loading')
-    },
-    mounted() {
-        this.scrollBase = this.$refs.scrollBase.$el.getBoundingClientRect().bottom / 3
-    },
-    updated() {
-        this.init()
-    },
-    methods: {
-        init() {
-            if (this.$route.params.category) {
-                // 특정 Depth 카테고리 내 전체 게시물 조회
-                this.getCateInfo(this.$route.params.category)
-                if (this.$route.params.name) {
-                    // 특정 Depth 하위 카테고리 내 전체 게시물 조회
-                    this.getSubCateInfo(this.category_idx, this.$route.params.name)
-                }
-            } else {
-                // 전체 게시판, 게시물 조회
-                this.getAll()
-            }
-        },
-        getAll() {
-            this.$apollo.query({
-                query: gql `${BoardsAndPosts}`
-            }).then(({ data }) => {
-                this.categories = data.boards
-                this.posts = data.posts
-            })
-        },
-        getCateInfo(name) {
-            this.$apollo.query({
-                query: gql `${CateInfo}`,
-                variables: {
-                    title: name
-                }
-            }).then(({ data }) => {
-                try {
-                    const { categoryNm, categoryIdx } = data.boards[0]
-                    this.category = categoryNm
-                    this.category_idx = categoryIdx
-                    this.getSubCateInfo(data.boards[0].depth + 1, data.boards[0].category_idx, name)
-                } catch (e) {
-                    throw Error(e)
-                }
-            }).catch((error) => {
-                console.log(error)
-                this.$router.push('/error/500')
-            })
-        },
-        getSubCateInfo(depth, parent, name) {
-            this.$apollo.query({
-                query: gql `${SubCates}`,
-                variables: {
-                    depth: depth,
-                    parent: parseInt(parent)
-                }
-            }).then(({ data }) => {
-                this.sub_categories = data.boards
-                this.getPosts(depth, parent)
-            })
-        },
-        getPosts(depth, parent) {
-            this.$apollo.query({
-                query: gql `${PostsByCate}`,
-                variables: {
-                    category_idx: parent
-                }
-            }).then(({ data }) => {
-                this.posts = data.posts
-            })
-        }
+  components: {
+    Navigation,
+    PostList,
+    Footer,
+    InfinitySwipe
+  },
+  data () {
+    return {
+      scrollBase: null,
+      write_url: urljoin(this.$route.path, '/new'),
+      posts: [],
+      navCategories: [],
+      cursor: '',
+      cateIdx: null,
+      title: '게시판',
+      desc: '아주나이스 커뮤니티',
+      activeCategory: 2
     }
+  },
+  apollo: {
+    categories: {
+      query: gql`${Categories}`,
+      variables: {
+        type: 'NORMAL',
+        depth: 0
+      }
+    }
+  },
+  computed: {
+    categoryLink (moduleName) {
+      let url
+      if (this.$route.params.category) {
+        if (!this.$route.params.name) {
+          url = `/board/${this.$route.params.category}/${moduleName}`
+        }
+      }
+      return url
+    }
+  },
+  watch: {
+    categories (value) {
+      if (value) {
+        this.initCategory()
+      }
+    },
+    '$route' (value) {
+      this.$router.go(0)
+    }
+  },
+  methods: {
+    onCategoryClicked (index) {
+      console.log(index)
+    },
+    onMoveCategory () {},
+    onChangePage () {},
+    onTouchEnd () {},
+    initCategory () {
+      if (this.$route.params.category) {
+        const idx = _.findIndex(this.categories, (category) => (category.title === this.$route.params.category))
+        if (this.$route.params.name) {
+          // Depth 1 카테고리 조회
+          const depth1Idx = _.findIndex(this.categories[idx].childCategories, (category) => (category.title === this.$route.params.name))
+          const depth1Category = this.categories[idx].childCategories[depth1Idx]
+          this.title = depth1Category.category_nm
+          this.desc = depth1Category.desc
+          this.cateIdx = depth1Category.category_idx
+          this.navCategories = []
+        } else {
+          // Depth 0 카테고리 조회
+          const depth0Category = this.categories[idx]
+          this.title = depth0Category.category_nm
+          this.desc = depth0Category.desc
+          this.cateIdx = depth0Category.category_idx
+          this.navCategories = depth0Category.childCategories
+        }
+      } else {
+        this.navCategories = this.categories
+      }
+    },
+    loadPosts ($state) {
+      this.$apollo.query({
+        query: gql`${PaginationPosts}`,
+        variables: {
+          cursor: this.cursor,
+          cateType: this.cateIdx || 0
+        },
+        fetchPolicy: 'network-only'
+      }).then(({ data: { paginatedPosts: { pageInfo, edges } } }) => {
+        this.posts = this.posts.concat(edges)
+        if (pageInfo.hasNext) {
+          this.cursor = pageInfo.after
+          $state.loaded() // 중간 지점 데이터 로드 완료시
+        } else {
+          $state.complete() // 최종 데이터 로드 완료시
+        }
+      })
+    }
+  }
 }
 </script>
+
+<style lang="scss">
+.categories {
+  width: 100vw;
+  background: #6400FF;
+  color: #fff;
+  & .infinity-swipe-item {
+    padding: .5rem 0;
+    > h2 {
+      display: inline-block;
+      margin: 0 15px;
+      &.active {
+        text-shadow: 0 0 5px rgba(0,0,0,.5);
+      }
+    }
+  }
+}
+</style>

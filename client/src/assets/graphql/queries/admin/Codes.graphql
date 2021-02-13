@@ -1,11 +1,23 @@
 {
-    colleges(exist_yn: "Y") {
+    allColleges {
+        id
         college_cd
         college_nm
+        link {
+            link_url
+        }
+        reg_dt
+        upt_dt
     }
 
     departments {
+        id
         dpt_cd
         dpt_nm
+        link {
+            link_url
+        }
+        reg_dt
+        upt_dt
     }
 }

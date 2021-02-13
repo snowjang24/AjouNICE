@@ -1,0 +1,8 @@
+query Department($code: String!) {
+    department(dpt_cd: $code) {
+        id
+        college_cd
+        dpt_cd
+        dpt_nm
+    }
+}

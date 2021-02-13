@@ -3,7 +3,10 @@
     <Navigation is-static />
     <main>
       <div class="wrapper">
-        <section class="post">
+        <section
+          v-if="post"
+          class="post"
+        >
           <header>
             <div class="header grid">
               <h3>{{ post.title }}</h3>
@@ -80,7 +83,7 @@
                   v-show="articleWriter()"
                   tag="router-link"
                   size="is-small"
-                  type="is-warning"
+                  type="is-dark"
                   :to="editArticle"
                 >
                   <font-awesome-icon icon="pen" />&nbsp;
@@ -103,7 +106,7 @@
                 >
                   <b-button
                     size="is-small"
-                    :type="{ 'is-danger': !onReport, 'is-warning': onReport }"
+                    :type="{ 'is-warning': !onReport, 'is-danger': onReport }"
                     @click="toggleReport"
                   >
                     <font-awesome-icon icon="exclamation-triangle" />&nbsp;
@@ -113,7 +116,7 @@
               </div>
               <Report
                 v-show="onReport"
-                :id="parseInt($route.params.post_id)"
+                :board_idx="parseInt($route.params.post_id)"
               />
             </div>
             <hr>
@@ -136,7 +139,7 @@ import urljoin from 'url-join'
 import VueClipBoard from 'vue-clipboard2'
 import gql from 'graphql-tag'
 import { Post } from '@/assets/graphql/queries'
-import { removePost, IncrementViewCount } from '@/assets/graphql/mutations'
+import { modPost, IncrementViewCount } from '@/assets/graphql/mutations'
 import { Navigation, Report, Replies, Footer } from '@/components'
 import { replyWritten, replyRemoved, replyModified } from '@/assets/graphql/subscriptions'
 VueClipBoard.config.autoSetContainer = true
@@ -150,21 +153,24 @@ export default {
   },
   data () {
     return {
+      post_id: this.$route.params.post_id,
       meta: {},
       user_idx: null,
-      onReport: false,
-      post: {
-        title: '',
-        body: '',
-        user: {
-          user_idx: null,
-          nick_nm: ''
-        },
-        category: {
-          title: ''
-        },
-        view_cnt: 0,
-        comments: []
+      onReport: false
+    }
+  },
+  apollo: {
+    post: {
+      query: gql`${Post}`,
+      variables () {
+        return {
+          id: this.post_id
+        }
+      },
+      fetchPolicy: 'network-only',
+      error (error) {
+        console.error(error)
+        this.$router.push('/error/404')
       }
     }
   },
@@ -181,27 +187,12 @@ export default {
   },
   beforeMount () {
     document.body.classList.add('loading')
-    this.$apollo.query({
-      query: gql`${Post}`,
-      variables: {
-        id: this.$route.params.post_id
-      }
-    }).then(({ data }) => {
-      if (data.post === null) {
-        this.$router.push('/error/404')
-      } else {
-        this.post = data.post
-      }
-    }).catch(error => {
-      console.error(error)
-      this.$router.push('/error/500')
-    })
     this.$apollo.mutate({
       mutation: gql`${IncrementViewCount}`,
       variables: {
-        id: parseInt(this.$route.params.post_id)
+        id: parseInt(this.post_id)
       }
-    }).then(({ data: { postViewed: { view_cnt } } }) => {
+    }).then(({ data: { incrementView: { view_cnt } } }) => {
       this.post.view_cnt = view_cnt
     })
   },
@@ -277,33 +268,33 @@ export default {
       return parseInt(this.$store.state.user.idx) === parseInt(this.post.user.user_idx)
     },
     removeArticle () {
-      const self = this
-      self.$swal({
+      this.$buefy.dialog.confirm({
         title: '삭제하시겠습니까?',
-        text: '삭제 후 복구가 불가능합니다.',
-        type: 'question',
-        showCancelButton: true,
-        showLoaderOnConfirm: true,
-        confirmButtonText: '삭제',
-        cancelButtonText: '취소',
-        preConfirm () {
+        message: '삭제한 게시물은 복구가 불가능합니다.',
+        confirmText: '삭제',
+        cancelText: '취소',
+        type: 'is-danger',
+        hasIcon: true,
+        icon: 'exclamation-triangle',
+        onConfirm: () => {
           document.body.classList.add('loading')
-          self.$apollo.mutate({
-            mutation: gql`${removePost}`,
+          this.$apollo.mutate({
+            mutation: gql`${modPost}`,
             variables: {
-              id: parseInt(self.$route.params.post_id)
+              mode: 'DESTROY',
+              options: {
+                board_idx: parseInt(this.$route.params.post_id)
+              }
             }
-          }).then(({ data }) => {
-            return data
+          }).then(({ data: { modPost: { result } } }) => {
+            if (result) {
+              this.flashSuccess('삭제되었습니다.')
+              document.body.classList.remove('loading')
+              this.$router.push('/board')
+            }
           }).catch(error => {
             console.error(error)
           })
-        }
-      }).then((result) => {
-        if (result.value) {
-          this.flashSuccess('삭제되었습니다.')
-          document.body.classList.remove('loading')
-          this.$router.push('/board')
         }
       })
     }

@@ -1,0 +1,15 @@
+mutation modCollege($mode: ManipulationMode!, $options: CollegeInput!) {
+    modCollege(mode: $mode, options: $options) {
+        result
+        data {
+            id
+            college_nm
+            college_cd
+            exist_yn
+            reg_ip
+            reg_dt
+            upt_ip
+            upt_dt
+        }
+    }
+}

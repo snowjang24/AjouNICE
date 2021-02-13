@@ -4,6 +4,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER(10).UNSIGNED,
       autoIncrement: true,
       primaryKey: true,
+      allowNull: false,
     },
     category_idx: {
       type: DataTypes.INTEGER(10).UNSIGNED,
@@ -14,14 +15,10 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
     },
     title: {
-      type: DataTypes.STRING(100, true),
-      allowNull: true,
-      defaultValue: null,
+      type: DataTypes.STRING(100),
     },
     body: {
-      type: DataTypes.STRING(20000, true),
-      allowNull: true,
-      defaultValue: null,
+      type: DataTypes.STRING(20000),
     },
     view_cnt: {
       type: DataTypes.INTEGER(10).UNSIGNED,
@@ -29,23 +26,21 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: 0,
     },
     reg_ip: {
-      type: DataTypes.STRING(40, true),
-      allowNull: true,
-      defaultValue: null,
+      type: DataTypes.STRING(40),
+      allowNull: false,
     },
     reg_dt: {
       type: DataTypes.DATE,
-      allowNull: true, // 왜 allowNull??
+      allowNull: false,
       defaultValue: DataTypes.NOW,
     },
     upt_ip: {
-      type: DataTypes.STRING(40, true),
-      allowNull: true,
-      defaultValue: null,
+      type: DataTypes.STRING(40),
+      allowNull: false,
     },
     upt_dt: {
       type: DataTypes.DATE,
-      allowNull: true,
+      allowNull: false,
       defaultValue: DataTypes.NOW,
     },
   }, {

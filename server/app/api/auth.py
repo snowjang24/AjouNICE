@@ -98,11 +98,12 @@ class Tokenizer():
         self.payload = {
             'exp': self.req_timestamp(),
             'iss': 'AjouNICE!_APIserver',
-            'sub': 'AjouNICE!_Sreq_timestampSO',
+            'sub': 'AjouNICE!_SSO',
             'iat': self.req_timestamp(now=True),
             'user': {
                 'idx': user.user_idx,
                 'name': user.user_nm,
+                'email': user.email,
                 'nick_nm': user.nick_nm,
                 'managable': (user.admin_type == 'A'),
                 'access_loc': remote_addr
@@ -163,6 +164,7 @@ class RegisterAPI(Resource):
             'college_cd': request.json.get('collegeCd', None),
             'dpt_cd': request.json.get('dptCd', None),
             'nick_nm': request.json.get('nickNm', None),
+            'user_profile': request.json.get('userProfile', None),
             'auth_token': authToken,
             'reg_ip': request.remote_addr,
             'reg_dt': datetime.now(tz=timezone(timedelta(hours=9))),

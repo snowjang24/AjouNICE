@@ -1,0 +1,9 @@
+query Categories($depth: Int!, $category_type: CategoryType!) {
+    boards(depth: $depth, category_type: $category_type) {
+        title
+        category_nm
+        category_idx
+        category_icon
+        depth
+    }
+}

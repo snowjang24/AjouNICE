@@ -7,13 +7,14 @@
         ref="scrollBase"
         :data="carouselItems"
       />
+
       <Welcome
-        :name="user.user_nm"
-        :idx="parseInt(user.user_idx)"
+        :anonymous="!me"
+        :user="me"
       />
       <IconNav :data="iconNav" />
       <div
-        v-show="$store.state.user"
+        v-show="carouselRadio && carouselRadio.length > 0"
         class="broadcast"
       >
         <feather type="radio" />
@@ -25,16 +26,16 @@
           direction="up"
         />
       </div>
-      <PostList
-        show-header
-        show-thumbnail
-        :items="posts"
-      />
-      <PostList
-        show-header
-        show-thumbnail
-        :items="posts"
-      />
+      <!-- <PostList
+            show-header
+            show-thumbnail
+            :items="posts"
+          />
+          <PostList
+            show-header
+            show-thumbnail
+            :items="posts"
+          /> -->
     </main>
     <Footer />
   </div>
@@ -44,7 +45,7 @@
 import uuid from 'uuid/v4'
 import gql from 'graphql-tag'
 import { Navigation, Welcome, IconNav, Footer, PostList, Popup } from '@/components'
-import { UserHome, Notice } from '@/assets/graphql/queries'
+import { Notice, Profile } from '@/assets/graphql/queries'
 
 export default {
   components: {
@@ -58,68 +59,63 @@ export default {
   data () {
     return {
       scrollBase: null,
-      user: {
-        user_nm: '',
-        idx: null
+      iconNav: [{
+        id: uuid(),
+        title: '커뮤니티',
+        background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
+        link: '/board/'
       },
-      iconNav: [
-        {
-          id: uuid(),
-          title: '커뮤니티',
-          background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
-          link: '/board/'
-        },
-        {
-          id: uuid(),
-          title: '학사일정',
-          background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
-          link: '/schedule'
-        },
-        {
-          id: uuid(),
-          title: 'Ajou버스',
-          background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
-          link: '/place/bus'
-        },
-        {
-          id: uuid(),
-          title: '아주맛집',
-          background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
-          link: '/place/gourmet'
-        },
-        {
-          id: uuid(),
-          title: '강의평가',
-          background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
-          link: '/lectures'
-        },
-        {
-          id: uuid(),
-          title: '시간표',
-          background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
-          link: '/timetable'
-        },
-        {
-          id: uuid(),
-          title: '부동산',
-          background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
-          link: '/place/realty'
-        },
-        {
-          id: uuid(),
-          title: '도서관',
-          background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
-          link: '/place/library'
-        },
-        {
-          id: uuid(),
-          title: '오늘의학식',
-          background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
-          link: '/restaurant'
-        }
+      {
+        id: uuid(),
+        title: '학사일정',
+        background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
+        link: '/schedule'
+      },
+      {
+        id: uuid(),
+        title: 'Ajou버스',
+        background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
+        link: '/place/bus'
+      },
+      {
+        id: uuid(),
+        title: '아주맛집',
+        background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
+        link: '/place/gourmet'
+      },
+      {
+        id: uuid(),
+        title: '강의평가',
+        background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
+        link: '/lectures'
+      },
+      {
+        id: uuid(),
+        title: '시간표',
+        background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
+        link: '/timetable'
+      },
+      {
+        id: uuid(),
+        title: '부동산',
+        background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
+        link: '/place/realty'
+      },
+      {
+        id: uuid(),
+        title: '도서관',
+        background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
+        link: '/place/library'
+      },
+      {
+        id: uuid(),
+        title: '오늘의학식',
+        background: 'https://avatars3.githubusercontent.com/u/51874554?s=200&v=4',
+        link: '/restaurant'
+      }
       ],
       carouselItems: [
-        `<a data-slide-item href="/#/">
+                `<a data-slide-item href="/#/">
             <div class="cover"></div>
             <div class="slide-content">
                 <h2 data-logo>AjouNICE!</h2>
@@ -131,26 +127,20 @@ export default {
       posts: []
     }
   },
-  beforeCreate () {
-    if (this.$store.state.user) {
-      this.$apollo.query({
-        query: gql`${UserHome}`,
-        variables: {
-          id: this.$store.state.user.idx
-        }
-      }).then(({ data: { user, posts } }) => {
-        this.posts = posts
-        this.user = user
-        for (const dpt of user.dpt_cd.split(',')) {
+  watch: {
+    me (value) {
+      if (value) {
+        this.dpt_cds = value.dpt_cd.split(',')
+        for (const dpt of this.dpt_cds) {
           this.$apollo.query({
             query: gql`${Notice}`,
             variables: {
               code: dpt
             }
-          }).then(({ data }) => {
+          }).then(({ data: { notice } }) => {
             const template = (id, message, link) => ({
-              id: id,
-              message: message,
+              id,
+              message,
               content (createElement, content) {
                 return createElement('a', {
                   attrs: {
@@ -176,32 +166,42 @@ export default {
                 ])
               }
             })
-            data.notice.forEach((value, i) => {
+            notice.forEach((value, i) => {
               this.carouselRadio.push(template(i, value.title, value.link))
             })
           })
         }
-      })
+      }
     }
   },
   mounted () {
     this.scrollBase = this.$refs.scrollBase.$el.getBoundingClientRect().bottom / 3
+  },
+  apollo: {
+    me: {
+      query: gql`${Profile}`,
+      variables () {
+        return {
+          token: this.$store.state.accessToken || ''
+        }
+      }
+    }
   }
 }
 </script>
 
 <style lang="scss" scoped>
 .carousel {
-  min-height: unset;
+    min-height: unset;
 }
 
 .icon-nav {
-  padding-top: 3rem;
+    padding-top: 3rem;
 }
 </style>
 
 <style>
 .broadcast-content {
-  font-family: 'KoPub Dotum';
+    font-family: 'KoPub Dotum';
 }
 </style>

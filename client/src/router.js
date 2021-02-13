@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import store from '@/store.js'
+import store from '@/store'
 
 import {
   Home,
@@ -16,21 +16,34 @@ import {
   BoardEditor,
   AuthTemplate,
   Login,
+  Reset,
   SignUp,
   Recovery,
-  Modifier,
+  AdminNotice,
+  AdminNewNotice,
+  AdminEditNotice,
+  AdminNewCode,
   AdminCode,
+  AdminEditCode,
   AdminDashboard,
   AdminStatus,
   AdminUsers,
+  AdminEditBoard,
   AdminBoards,
+  AdminBoardList,
+  AdminNewBoard,
   AdminGourmet,
+  AdminGourmetList,
   AdminNewGourmet,
+  AdminEditGourmet,
+  AdminNewGourmetPlace,
+  AdminEditGourmetPlace,
   AdminReviews,
   AdminNewPopup,
   AdminPopup,
   AdminPermission,
   AdminRestriction,
+  AdminRealty,
   ScheduleHome,
   TimetableHome,
   RealtyHome,
@@ -56,7 +69,7 @@ import LibraryHome from '@/views/place/library/Home.vue'
 Vue.use(Router)
 
 const checkHomeSignedIn = (to, from, next) => {
-  if (localStorage.accessToken) {
+  if (store.state.accessToken) {
     store.dispatch('checkTokenStatus').then(result => {
       return next()
     }).catch(error => {
@@ -78,7 +91,7 @@ const checkHomeSignedIn = (to, from, next) => {
 }
 
 const requireAuth = (to, from, next) => {
-  if (localStorage.accessToken) {
+  if (store.state.accessToken) {
     store.dispatch('checkTokenStatus').then(result => {
       return next()
     }).catch(error => {
@@ -108,7 +121,7 @@ const requireAuth = (to, from, next) => {
 }
 
 const requireAdminAuth = (to, from, next) => {
-  if (localStorage.accessToken) {
+  if (store.state.accessToken) {
     store.dispatch('checkTokenStatus').then(({ user }) => {
       if (user.managable) {
         return next()
@@ -136,7 +149,7 @@ const requireAdminAuth = (to, from, next) => {
 }
 
 const alreadySignedIn = (to, from, next) => {
-  if (!localStorage.accessToken) return next()
+  if (!store.state.accessToken) return next()
   next({
     path: '/'
   })
@@ -166,17 +179,16 @@ export default new Router({
         {
           path: 'recovery',
           component: Recovery
+        },
+        {
+          path: 'authorize',
+          component: Authorize
+        },
+        {
+          path: 'authorize/reset',
+          component: Reset
         }
       ]
-    },
-    {
-      path: '/auth/authorize',
-      name: 'authorize',
-      component: Authorize
-    },
-    {
-      path: '/auth/reset/authorize',
-      component: Modifier
     },
     {
       path: '/my/edit',
@@ -249,23 +261,8 @@ export default new Router({
       beforeEnter: requireAuth
     },
     {
-      path: '/board/:category/new',
-      component: BoardNew,
-      beforeEnter: requireAuth
-    },
-    {
       path: '/board/:category/:name',
       component: Board,
-      beforeEnter: requireAuth
-    },
-    {
-      path: '/board/:category/:name/new',
-      component: BoardNew,
-      beforeEnter: requireAuth
-    },
-    {
-      path: '/board/:category/:name/new',
-      component: BoardNew,
       beforeEnter: requireAuth
     },
     {
@@ -324,6 +321,18 @@ export default new Router({
           component: AdminStatus
         },
         {
+          path: 'notice',
+          component: AdminNotice
+        },
+        {
+          path: 'notice/:notice_idx/edit',
+          component: AdminEditNotice
+        },
+        {
+          path: 'notice/new',
+          component: AdminNewNotice
+        },
+        {
           path: 'users',
           component: AdminUsers
         },
@@ -332,20 +341,60 @@ export default new Router({
           component: AdminCode
         },
         {
+          path: 'codes/new',
+          component: AdminNewCode
+        },
+        {
+          path: 'codes/edit/:record',
+          component: AdminEditCode
+        },
+        {
           path: 'boards',
           component: AdminBoards
+        },
+        {
+          path: 'boards/new',
+          component: AdminNewBoard
         },
         {
           path: 'boards/gourmet',
           component: AdminGourmet
         },
         {
-          path: 'boards/gourmet/new',
+          path: 'boards/gourmet/new/module',
           component: AdminNewGourmet
+        },
+        {
+          path: 'boards/gourmet/new/place',
+          component: AdminNewGourmetPlace
+        },
+        {
+          path: 'boards/gourmet/:category_idx',
+          component: AdminGourmetList
+        },
+        {
+          path: 'boards/gourmet/:category_idx/edit',
+          component: AdminEditGourmet
+        },
+        {
+          path: 'boards/gourmet/:category_idx/place/:res_idx/edit',
+          component: AdminEditGourmetPlace
         },
         {
           path: 'boards/reviews',
           component: AdminReviews
+        },
+        {
+          path: 'boards/realty',
+          component: AdminRealty
+        },
+        {
+          path: 'boards/:category_idx',
+          component: AdminBoardList
+        },
+        {
+          path: 'boards/:category_idx/edit',
+          component: AdminEditBoard
         },
         {
           path: 'restrictions',
